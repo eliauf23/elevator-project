@@ -16,7 +16,7 @@ float distTrav() {
 
 //All variables:
 
-unsigned long lastToggle;
+unsigned long lastToggle = 0;
 
 int distTraveled = 0;
 
@@ -46,7 +46,7 @@ void loop(void) {
 //when button is clicked, finds difference in altitude
 //adds to counter, makes beginning = current altitude, thereby zeroing everything
   
-  if(millis()-lastToggle > 5000) { //never initialized last toggle!
+  if(millis()-lastToggle > 5000) {
     pressure = bme280.getPressure();
     int altitude = bme280.calcAltitude(pressure);
     lastToggle = millis();
@@ -68,7 +68,6 @@ void loop(void) {
   if (buttonState1 >= 700) {
     distTraveled = 0;
     init_alt = altitude;
-    deltaAlt = altitude;
   }
   //displaying everything to the LCD
 
@@ -89,7 +88,7 @@ void loop(void) {
 
     u8g2.print("Altitude: ");
 
-    int zeroed = altitude - deltaAlt;
+    int zeroed = altitude - init_alt;
 
     u8g2.print(zeroed);
 
