@@ -57,6 +57,7 @@ void loop(void) {
     }
   }
 
+ //test
   //button 2 resets the distTraveled to 0 and updates the current altitude as begining
 
   pressure = bme280.getPressure();
