@@ -31,16 +31,19 @@ int state;
 unsigned long lastToggle;
 float distTraveled = 0;
 float beginning;
-const int buttonPin1 = 1;
+const int buttonPin1 = 12;
 float altitude;
 float altitudeLive;
 float deltaAlt = 0;
 int upOrDown = 0;
 int reset = 0;
-float zeroed;
-float minimum = 1;
+int zeroed;
+float minimum = 0.5;
 int iconX;
 int iconY;
+int deltaTime;
+float velocity;
+float deltadist;
 
 void setup(void) {
 
@@ -72,6 +75,7 @@ void loop(void) {
   if (reset == 1) {
     delay(1000);
   }
+  
 }
 
 void imageloop(void) {
@@ -92,10 +96,10 @@ void imageloop(void) {
           u8g2.drawGlyph(iconX, iconY, 0x23f8);
         } break;
       case 1: {
-          u8g2.drawGlyph(iconX, iconY, 0x23f6);
+          u8g2.drawGlyph(iconX - 5, iconY, 0x23f6);
         } break;
       case -1: {
-          u8g2.drawGlyph(iconX, iconY, 0x23f7);
+          u8g2.drawGlyph(iconX - 5, iconY, 0x23f7);
         } break;
     }
   }
@@ -107,31 +111,37 @@ void imageloop(void) {
   u8g2.print(zeroed);
   u8g2.print("m");
   //Cumulative:
-  u8g2.setCursor(0, 50);
+  u8g2.setCursor(0, 42);
   u8g2.print("Total: ");
   u8g2.print(distTraveled);
   u8g2.print("m");
-
+  u8g2.setCursor(0, 57);
+  u8g2.print("Velocity: ");
+  u8g2.print(velocity);
+  u8g2.print("m/s");
 }
 void resetButton(void) {
 
-  int buttonState1 = analogRead(buttonPin1);
-  if (buttonState1 >= 700) {
+  int buttonState1 = digitalRead(buttonPin1);
+  if (buttonState1 == HIGH) {
     distTraveled = 0;
     beginning = altitude;
     deltaAlt = altitude;
+    velocity = 0;
     reset = 1;
     //delay(1000);
   }
 }
+
 void counter(void) {
   bme.takeForcedMeasurement(); 
   
   if (millis() - lastToggle > 5000) {
+    deltaTime = millis() - lastToggle;
     altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
     lastToggle = millis();
-    int delta = abs(altitude - beginning);
-    if (delta > minimum) {
+    deltadist = abs(altitude - beginning);
+    if (deltadist > minimum) {
       distTraveled += abs(altitude - beginning);
       if ((altitude - beginning) > 0) {
         upOrDown = 1;
@@ -140,6 +150,7 @@ void counter(void) {
       }
       beginning = altitude;
     } else upOrDown = 0;
+    calcV(deltadist);
   }
 }
 void setUp(void) {
@@ -155,4 +166,12 @@ void setUp(void) {
   Serial.println();
   //Necessary for LCD display
   u8g2.begin();
+}
+
+void calcV (float dist) {
+  deltaTime = deltaTime/1000;
+  velocity = dist/deltaTime;
+    if(velocity <= 0.2) {
+      velocity = 0;
+    }
 }
